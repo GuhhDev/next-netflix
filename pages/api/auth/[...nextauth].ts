@@ -26,7 +26,7 @@ export const authOptions: AuthOptions = {
         },
         password: {
           label: 'Password',
-          type: 'passord'
+          type: 'password'
         }
       },
       async authorize(credentials) {
@@ -35,8 +35,8 @@ export const authOptions: AuthOptions = {
         }
 
         const user = await prismadb.user.findUnique({ where: {
-          email: credentials.email
-        }});
+            email: credentials.email
+          }});
 
         if (!user || !user.hashedPassword) {
           throw new Error('Email does not exist');
@@ -54,6 +54,7 @@ export const authOptions: AuthOptions = {
   ],
   pages: {
     signIn: '/auth'
+
   },
   debug: process.env.NODE_ENV === 'development',
   adapter: PrismaAdapter(prismadb),
@@ -65,4 +66,3 @@ export const authOptions: AuthOptions = {
 };
 
 export default NextAuth(authOptions);
-
