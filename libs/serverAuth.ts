@@ -1,27 +1,34 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth";
 
-import prismadb from '@/libs/prismadb';
+import prisma from "@/libs/prismadb";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { exclude } from "@/utils/helpers";
 
 const serverAuth = async (req: NextApiRequest, res: NextApiResponse) => {
-  const session = await getServerSession(req, res, authOptions);
+    const session = await getServerSession(req, res, authOptions);
 
-  if (!session?.user?.email) {
-    throw new Error('Not signed in');
-  }
-
-  const currentUser = await prismadb.user.findUnique({
-    where: {
-      email: session.user.email,
+    if (!session?.user?.email) {
+        throw new Error("Not signed in");
     }
-  });
-  
-  if (!currentUser) {
-    throw new Error('Not signed in');
-  }
 
-  return { currentUser };
-}
+    const currentUser = await prisma.user.findUnique({
+        where: {
+            email: session.user.email,
+        },
+        include: {
+            sessions: true,
+            accounts: true,
+            _count: true,
+        },
+    });
+
+    if (!currentUser) {
+        throw new Error("Not signed in");
+    }
+
+    const userWithoutPassword = exclude(currentUser, ["hashedPassword"]);
+    return { currentUser: userWithoutPassword };
+};
 
 export default serverAuth;
